@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import '../styles/tailwind.css';
 
 export const viewport: Viewport = {
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ fontFamily: 'var(--font-sans, DM Sans, system-ui, sans-serif)' }}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
