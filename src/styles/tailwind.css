@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #09090b;
+  --foreground: #f2ede6;
+  --card: #111115;
+  --card-foreground: #f2ede6;
+  --primary: #c9a96e;
+  --primary-foreground: #09090b;
+  --accent: #7c6b52;
+  --accent-foreground: #f2ede6;
+  --muted: #1a1a1f;
+  --muted-foreground: #7a7068;
+  --border: #1f1e22;
+  --input: #1a1a1f;
+  --ring: #c9a96e;
+  --radius: 0.75rem;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Grid lines background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(201, 169, 110, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 169, 110, 0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+/* Ambient blob */
+.blob {
+  border-radius: 50%;
+  filter: blur(80px);
+  background: radial-gradient(circle, rgba(201, 169, 110, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Card glow */
+.card-glow {
+  box-shadow: 0 0 0 1px rgba(201, 169, 110, 0.06), 0 4px 40px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.4s ease;
+}
+.card-glow:hover {
+  box-shadow: 0 0 0 1px rgba(201, 169, 110, 0.2), 0 8px 60px rgba(201, 169, 110, 0.08), 0 4px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Arch clip for hero image */
+.arch-clip {
+  border-radius: 48% 48% 50% 50% / 20% 20% 80% 80%;
+}
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Noise texture */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Live dot */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c9a96e;
+  box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4);
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(201, 169, 110, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0); }
+}
+
+/* Fade in on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Chat message bubble */
+.chat-bubble-user {
+  background: rgba(201, 169, 110, 0.12);
+  border: 1px solid rgba(201, 169, 110, 0.2);
+  border-radius: 18px 18px 4px 18px;
+}
+.chat-bubble-assistant {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px 18px 18px 4px;
+}
+
+/* Range input */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-track {
+  background: rgba(201, 169, 110, 0.15);
+  height: 3px;
+  border-radius: 2px;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #c9a96e;
+  margin-top: -6.5px;
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.2);
+}
+input[type='range']::-moz-range-track {
+  background: rgba(201, 169, 110, 0.15);
+  height: 3px;
+  border-radius: 2px;
+}
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #c9a96e;
+  border: none;
+}
