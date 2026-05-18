@@ -69,6 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body style={{ fontFamily: 'var(--font-sans, DM Sans, system-ui, sans-serif)' }}>
         {children}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
