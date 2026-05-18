@@ -9,6 +9,7 @@ import ChatSection from '@/app/components/ChatSection';
 import AboutSection from '@/app/components/AboutSection';
 import PricingSection from '@/app/components/PricingSection';
 import Footer from '@/components/Footer';
+NEXT_PUBLIC_mindreply_SANITY_PROJECT_ID
 
 export const metadata: Metadata = {
   alternates: { canonical: 'https://mind-reply.com' },
