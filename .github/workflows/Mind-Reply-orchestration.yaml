@@ -2,7 +2,8 @@
 # Build steps can be customized in the Mind-Reply-build.yaml.
 # More information under https://docs.ionos.space/docs/github-actions-customization/
 # version: 2022-07-21
-
+- name: Attest Build Provenance
+  uses: actions/attest-build-provenance@v4.1.0
 name: "Deploy Now: Orchestration"
 run-name: "Deploy Now: Build Mind-Reply · ${{ github.event.head_commit.message || format('Triggered by {0}', github.triggering_actor) }}"
 
