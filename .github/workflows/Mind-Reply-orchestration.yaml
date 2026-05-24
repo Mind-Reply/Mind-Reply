@@ -32,7 +32,7 @@ jobs:
     name: build
     
 
-      site-url: https://IONOS_DEPLOY_NOW_SITE_URL
+      site-url: https://mind-reply.com
       
     secrets: inherit
 
