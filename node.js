@@ -25,4 +25,5 @@
     mirror: # optional
     # The token used as Authorization header when fetching from the mirror
     mirror-token: # optional
+    'npm run build'
           
