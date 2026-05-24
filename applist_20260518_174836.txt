@@ -1,0 +1,75 @@
+App Name                                          	App Version         	Bundle ID                                         	App Type            	Purchase Account                                  
+ROMEO                                             	4.3.2               	com.planetromeo.mobile                            	App Store           	alicelynnts@icloud.com                            
+DuckDuckGo                                        	7.219.0             	com.duckduckgo.mobile.ios                         	App Store           	alicelynnts@icloud.com                            
+Lensa                                             	8.6.0               	com.prisma-ai.lensa-app                           	App Store           	alicelynnts@icloud.com                            
+Apple Store                                       	670050              	com.apple.store.Jolly                             	App Store           	alicelynnts@icloud.com                            
+Tide                                              	3.177.0             	co.tide                                           	App Store           	alicelynnts@icloud.com                            
+Outlook                                           	5.2617.1            	com.microsoft.Office.Outlook                      	App Store           	alicelynnts@icloud.com                            
+‎WhatsApp                                         	26.17.76            	net.whatsapp.WhatsApp                             	App Store           	alicelynnts@icloud.com                            
+Proton Mail                                       	7.9.3               	ch.protonmail.protonmail                          	App Store           	alicelynnts@icloud.com                            
+AzureFaceLiveness                                 	1.4.5               	com.microsoft.azurevisionliveness                 	App Store           	alicelynnts@icloud.com                            
+v0                                                	0.0.26              	com.vercel.v0                                     	App Store           	alicelynnts@icloud.com                            
+Hinge                                             	9.121.0             	co.hinge.mobile.ios                               	App Store           	alicelynnts@icloud.com                            
+C4                                                	1.1.5               	com.fss.c4app                                     	App Store           	alicelynnts@icloud.com                            
+Google Maps                                       	26.19.2             	com.google.Maps                                   	App Store           	alicelynnts@icloud.com                            
+maxim 🚕                                          	3.220               	com.taxsee.Taxsee                                 	App Store           	alicelynnts@icloud.com                            
+OneDrive                                          	18.1.4              	com.microsoft.skydrive                            	App Store           	alicelynnts@icloud.com                            
+hide.me VPN                                       	6.1.3               	com.eventur.Hide.me                               	App Store           	alicelynnts@icloud.com                            
+Messenger                                         	561.0.0             	com.facebook.Messenger                            	App Store           	alicelynnts@icloud.com                            
+Edge                                              	148.3967.55         	com.microsoft.msedge                              	App Store           	alicelynnts@icloud.com                            
+Bumble                                            	5.461.1             	com.moxco.bumble                                  	App Store           	alicelynnts@icloud.com                            
+Drive                                             	4.2619.41400        	com.google.Drive                                  	App Store           	alicelynnts@icloud.com                            
+PayPal                                            	8.106.0             	com.yourcompany.PPClient                          	App Store           	alicelynnts@icloud.com                            
+1.1.1.1                                           	6.31.4              	com.cloudflare.1dot1dot1dot1                      	App Store           	alicelynnts@icloud.com                            
+mail.com                                          	10.7                	com.mail.iosmailer                                	App Store           	alicelynnts@icloud.com                            
+Telegram                                          	12.7                	ph.telegra.Telegraph                              	App Store           	alicelynnts@icloud.com                            
+X                                                 	11.91               	com.atebits.Tweetie2                              	App Store           	alicelynnts@icloud.com                            
+Streaming                                         	1.4.1               	com.thinkingmachines.streaming                    	App Store           	alicelynnts@icloud.com                            
+Bolt                                              	234.0               	ee.mtakso.client                                  	App Store           	alicelynnts@icloud.com                            
+IONOS                                             	3.10.4              	com.oneandone.mobile.ControlPanel                 	App Store           	alicelynnts@icloud.com                            
+Namecheap                                         	3.18.14             	com.namecheap.iosapp                              	App Store           	alicelynnts@icloud.com                            
+YouTube                                           	21.19.2             	com.google.ios.youtube                            	App Store           	alicelynnts@icloud.com                            
+Chrome                                            	148.7778.166        	com.google.chrome.ios                             	App Store           	alicelynnts@icloud.com                            
+Taskade                                           	6.0.6               	com.taskade.mobile                                	App Store           	alicelynnts@icloud.com                            
+Temu                                              	4.48.0              	com.einnovation.temu                              	App Store           	alicelynnts@icloud.com                            
+Edits                                             	429.0.0             	com.burbn.basel                                   	App Store           	alicelynnts@icloud.com                            
+Photo Timer+                                      	26.0                	com.MadCalfApps.PhotoTimer                        	App Store           	alicelynnts@icloud.com                            
+Uber                                              	3.721.10002         	com.ubercab.UberClient                            	App Store           	alicelynnts@icloud.com                            
+Uber Eats                                         	6.322.10002         	com.ubercab.UberEats                              	App Store           	alicelynnts@icloud.com                            
+Pose                                              	1.4.0               	ai.photo.editor.headshot.generator.video.retouch.face.correction.fotos.cara	App Store           	alicelynnts@icloud.com                            
+Feeld                                             	9.3.1               	com.3nder.threender                               	App Store           	alicelynnts@icloud.com                            
+Google Photos                                     	7.75.0              	com.google.photos                                 	App Store           	alicelynnts@icloud.com                            
+Authenticator                                     	5.0.0               	com.google.Authenticator                          	App Store           	alicelynnts@icloud.com                            
+Remini                                            	2.10.197            	com.bigwinepot.nwdn.international                 	App Store           	alicelynnts@icloud.com                            
+Instagram                                         	429.0.0             	com.burbn.instagram                               	App Store           	alicelynnts@icloud.com                            
+Booking.com                                       	66.2                	com.booking.BookingApp                            	App Store           	alicelynnts@icloud.com                            
+EU Exit: ID document check                        	1.168.920           	uk.gov.HomeOffice.ho1                             	App Store           	alicelynnts@icloud.com                            
+Support                                           	5.13.1              	com.apple.supportapp                              	App Store           	alicelynnts@icloud.com                            
+Planet VPN                                        	5.2.0               	com.atrix.rusvpn                                  	App Store           	alicelynnts@icloud.com                            
+AOL                                               	7.81.0              	com.aol.mobile.aolclient                          	App Store           	alicelynnts@icloud.com                            
+Tesco                                             	26.6.0              	com.tesco.grocery                                 	App Store           	alicelynnts@icloud.com                            
+Business Suite                                    	489.0               	com.facebook.PageAdminApp                         	App Store           	alicelynnts@icloud.com                            
+Rev                                               	2.6.0               	com.revcel.mobile                                 	App Store           	alicelynnts@icloud.com                            
+Evergreen                                         	29.1.16             	com.ascent.phr                                    	App Store           	alicelynnts@icloud.com                            
+Gmail                                             	6.0.260504          	com.google.Gmail                                  	App Store           	alicelynnts@icloud.com                            
+Viber                                             	27.9.0              	com.viber                                         	App Store           	alicelynnts@icloud.com                            
+My A1                                             	4.4.2               	bg.mobiltel.ios.selfcare                          	App Store           	alicelynnts@icloud.com                            
+Music Player                                      	1.2                 	shop.metaimport.music                             	App Store           	alicelynnts@icloud.com                            
+‎WA Business                                      	26.17.77            	net.whatsapp.WhatsAppSMB                          	App Store           	alicelynnts@icloud.com                            
+YouTube Music                                     	9.19.5              	com.google.ios.youtubemusic                       	App Store           	alicelynnts@icloud.com                            
+Monzo                                             	7.25.0              	io.b2a.BankProd                                   	App Store           	alicelynnts@icloud.com                            
+TikTok                                            	45.0.0              	com.zhiliaoapp.musically                          	App Store           	alicelynnts@icloud.com                            
+VPN UK                                            	4.047               	org.freevpn.vpn.uk                                	App Store           	alicelynnts@icloud.com                            
+Avatan                                            	5.35                	ru.avatan                                         	App Store           	alicelynnts@icloud.com                            
+NHS App                                           	6.2.0               	com.nhs.online                                    	App Store           	alicelynnts@icloud.com                            
+IFTTT                                             	4.109.0             	com.ifttt.ifttt                                   	App Store           	alicelynnts@icloud.com                            
+Linktree                                          	3.42.0              	ee.linktr.admin                                   	App Store           	alicelynnts@icloud.com                            
+Passbook                                          	3.13                	com.am.pkstudio                                   	App Store           	alicelynnts@icloud.com                            
+SMARTY                                            	2.1.2               	com.hutchison3g.sundae                            	App Store           	alicelynnts@icloud.com                            
+Google Ads                                        	3.29.20081307       	com.google.AdWords                                	App Store           	alicelynnts@icloud.com                            
+giffgaff                                          	20.6.0              	com.giffgaff.mygiffgaff                           	App Store           	alicelynnts@icloud.com                            
+Raindrop.io                                       	5.3.6               	io.raindrop.ios                                   	App Store           	alicelynnts@icloud.com                            
+Zeely                                             	7.12.0              	com.zeely.app                                     	App Store           	alicelynnts@icloud.com                            
+myUONL                                            	11.34.0             	com.ombiel.campusm.uonl                           	App Store           	alicelynnts@icloud.com                            
+Facebook                                          	561.0.0             	com.facebook.Facebook                             	App Store           	alicelynnts@icloud.com                            
+Gemini                                            	1.2026.1870008      	com.google.gemini                                 	App Store           	alicelynnts@icloud.com                            
