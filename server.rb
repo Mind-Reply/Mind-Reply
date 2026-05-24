@@ -292,5 +292,5 @@ def parse_request_body
   end
 end
 
-set :port, 4242
-puts "Server running on port 4242"
+set :port, ENV.fetch('PORT', 4242).to_i
+puts "Server running on port #{settings.port}"
