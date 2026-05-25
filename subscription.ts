@@ -1,6 +1,6 @@
-import { SignUp } from '@clerk/nextjs';
+import { SignIn } from '@clerk/nextjs';
 
-export default function SignUpPage() {
+export default function SignInPage() {
   return (
     <div style={{
       minHeight: '100vh', background: '#09090b',
@@ -19,10 +19,10 @@ export default function SignUpPage() {
           MindReply
         </p>
         <p style={{ fontSize: 12, color: '#7a7068', marginTop: 4 }}>
-          Begin your operational composure
+          Enter your operational hub
         </p>
       </div>
-      <SignUp
+      <SignIn
         appearance={{
           variables: {
             colorBackground: '#111115',
