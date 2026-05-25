@@ -41,3 +41,9 @@ jobs:
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           package: .
+OPENAI_API_KEY=xxxx
+DATABASE_URL=xxxx
+GITHUB_TOKEN=xxxx
+STRIPE_SECRET_KEY=xxxx
+STRIPE_WEBHOOK_SECRET=xxxx
+NEXT_PUBLIC_APP_URL=https://<your-app>.azurewebsites.net
