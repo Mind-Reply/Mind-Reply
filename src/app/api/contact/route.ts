@@ -1,26 +1,15 @@
-export async function POST(request: Request) {
+import { NextRequest, NextResponse } from 'next/server';
+import { log } from '@/lib/log';
+
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, email, message, company } = body;
+    const { name, email, message, subject } = await req.json();
+    if (!email || !message) return NextResponse.json({ error: 'Email and message required' }, { status: 400 });
 
-    if (!name || !email || !message) {
-      return Response.json({ error: 'Required fields missing' }, { status: 400 });
-    }
+    await log('contact_form', { name, email, subject, message });
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return Response.json({ error: 'Invalid email' }, { status: 400 });
-    }
-
-    // Log contact for now; integrate email service as needed
-    console.log('Contact submission:', { name, email, company, messageLength: message.length });
-
-    return Response.json({
-      success: true,
-      message: 'Received. You will hear from us within one business day.',
-    });
-  } catch (err) {
-    console.error('Contact error:', err);
-    return Response.json({ error: 'Service unavailable' }, { status: 503 });
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }

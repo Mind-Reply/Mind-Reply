@@ -1,78 +1,56 @@
-/**
- * API Route: POST /api/checkout
- * 
- * Creates a Stripe Checkout Session for subscription signup
- * Handles plan selection, customer data, and redirect URLs
- */
-
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { createStripeCustomer, ensureProductAndPrice, getStripeClient, PLANS } from '@/lib/stripe';
+import { db, users } from '@/lib/db';
+import { eq } from 'drizzle-orm';
+import { getStripe, PLAN_PRICES, detectCurrency } from '@/lib/stripe';
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { email, planId, returnUrl } = body;
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Validate inputs
-    if (!email || !planId || !PLANS[planId as keyof typeof PLANS]) {
-      return NextResponse.json(
-        { error: 'Missing or invalid parameters' },
-        { status: 400 }
-      );
-    }
-
-    const plan = PLANS[planId as keyof typeof PLANS];
-
-    // Create or retrieve product and price
-    const { product, price } = await ensureProductAndPrice(plan);
-
-    // Create customer
-    const customer = await createStripeCustomer({
-      email,
-      metadata: {
-        plan_id: planId,
-        source: 'web_checkout',
-      },
-    });
-
-    // Create checkout session
-    const session = await getStripeClient().checkout.sessions.create({
-      customer: customer.id,
-      payment_method_types: ['card'],
-      mode: 'subscription',
-      line_items: [
-        {
-          price: price.id,
-          quantity: 1,
-        },
-      ],
-      // Redirect URLs
-      success_url: `${returnUrl}?session_id={CHECKOUT_SESSION_ID}&success=true`,
-      cancel_url: `${returnUrl}?success=false`,
-      // Enable automatic tax collection
-      automatic_tax: {
-        enabled: true,
-      },
-      // Enable instant activation for immediate access
-      subscription_data: {
-        metadata: {
-          plan_name: plan.name,
-          created_from: 'web_checkout',
-        },
-      },
-      // Custom success/error pages
-      locale: 'auto',
-    });
-
-    return NextResponse.json({
-      sessionId: session.id,
-      url: session.url,
-    });
-  } catch (error) {
-    console.error('Checkout error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create checkout session' },
-      { status: 500 }
-    );
+  const { planId, currency: reqCurrency, returnUrl } = await req.json();
+  if (!planId || !['growth', 'pro'].includes(planId)) {
+    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
   }
+
+  const clerkUser = await currentUser();
+  const email = clerkUser?.emailAddresses[0]?.emailAddress || '';
+  const country = clerkUser?.publicMetadata?.country as string | undefined;
+  const currency = reqCurrency || detectCurrency(country);
+
+  const planPrices = PLAN_PRICES[planId];
+  const unitAmount = planPrices[currency] ?? planPrices.gbp;
+
+  const stripe = getStripe();
+
+  // Get or create Stripe customer
+  let [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  let customerId = user?.stripeCustomerId;
+
+  if (!customerId) {
+    const customer = await stripe.customers.create({ email, metadata: { clerkId: userId } });
+    customerId = customer.id;
+    await db.update(users).set({ stripeCustomerId: customerId }).where(eq(users.id, userId));
+  }
+
+  // Create price on the fly (or use existing)
+  const price = await stripe.prices.create({
+    currency,
+    unit_amount: unitAmount,
+    recurring: { interval: 'month' },
+    product_data: { name: `MindReply ${planId.charAt(0).toUpperCase() + planId.slice(1)}` },
+  });
+
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    mode: 'subscription',
+    line_items: [{ price: price.id, quantity: 1 }],
+    success_url: `${returnUrl || process.env.NEXT_PUBLIC_SITE_URL + '/dashboard'}?success=true`,
+    cancel_url: `${returnUrl || process.env.NEXT_PUBLIC_SITE_URL + '/dashboard/settings'}?canceled=true`,
+    automatic_tax: { enabled: true },
+    subscription_data: { metadata: { clerkId: userId, plan: planId } },
+    metadata: { clerkId: userId, plan: planId },
+  });
+
+  return NextResponse.json({ url: session.url, sessionId: session.id });
 }

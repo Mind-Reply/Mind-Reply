@@ -20,7 +20,7 @@ const plans = [
       'Community support',
     ],
     cta: 'Start free — no card',
-    href: '#',
+    href: '/sign-up',
   },
   {
     id: 'growth',
@@ -39,7 +39,7 @@ const plans = [
       'Email support',
     ],
     cta: 'Start with Growth',
-    href: '#',
+    href: '/sign-up?plan=growth',
   },
   {
     id: 'pro',
@@ -58,7 +58,7 @@ const plans = [
       'Priority support & guided onboarding',
     ],
     cta: 'Start with Pro',
-    href: '#',
+    href: '/sign-up?plan=pro',
   },
 ];
 

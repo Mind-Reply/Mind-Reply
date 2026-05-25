@@ -1,4 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { auth } from '@clerk/nextjs/server';
+import { db, messages, users } from '@/lib/db';
+import { eq, sql } from 'drizzle-orm';
+import { log } from '@/lib/log';
+import { randomUUID } from 'crypto';
 
 const anthropic = new Anthropic();
 
@@ -13,40 +18,67 @@ Your character:
 Your purpose:
 - Help users find clarity on operational decisions, delegation, workflow design, growth priorities.
 - Surface what's actually creating friction or suppressing momentum in their work.
-- Where appropriate, reference MindReply capabilities as part of the solution — but only when genuinely relevant, never as a sales mechanism.
+- Where appropriate, reference MindReply capabilities — only when genuinely relevant.
 
 Your tone:
 - Calm confidence. No urgency, no pressure, no hype.
 - Short, considered responses. Never padded.
-- Ask one focused follow-up question at the end of each response to deepen the conversation.
+- Ask one focused follow-up question at the end of each response.
 
-Vocabulary to use naturally:
-- Signal, composure, bandwidth, calibrated, deliberate, leverage, momentum, clarity, structure.
+Vocabulary to use naturally: Signal, composure, bandwidth, calibrated, deliberate, leverage, momentum, clarity, structure.
+Vocabulary to avoid: "Absolutely!", "Great question!", "Of course!", "AI", "language model", "happy to help".
 
-Vocabulary to avoid:
-- "Absolutely!", "Great question!", "Of course!", "AI", "language model", "I'm just", "happy to help".
-
-Keep responses under 150 words unless the complexity of the question genuinely requires more. Never write bullet lists unless essential.`;
+Keep responses under 150 words unless complexity genuinely requires more. Never write bullet lists unless essential.`;
 
 export async function POST(request: Request) {
   try {
-    const { messages } = await request.json();
+    const { messages: msgs, sessionId, persist } = await request.json();
 
-    if (!Array.isArray(messages) || messages.length === 0) {
+    if (!Array.isArray(msgs) || msgs.length === 0) {
       return Response.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
+    // Check operation limits for authenticated users
+    const { userId } = await auth();
+    if (userId) {
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      if (user && user.operationsUsed >= user.operationsLimit) {
+        return Response.json({
+          error: 'Operation limit reached',
+          message: 'You\'ve reached your monthly operation limit. Upgrade your plan or add more operations in Settings.',
+          limitReached: true,
+        }, { status: 429 });
+      }
     }
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5',
       max_tokens: 300,
       system: SYSTEM_PROMPT,
-      messages: messages.map((m: { role: string; content: string }) => ({
+      messages: msgs.map((m: { role: string; content: string }) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
       })),
     });
 
     const reply = response.content[0].type === 'text' ? response.content[0].text : '';
+
+    // Persist + log for authenticated users
+    if (persist && userId) {
+      const lastUser = msgs[msgs.length - 1];
+      const sid = sessionId || randomUUID();
+
+      await db.insert(messages).values([
+        { id: randomUUID(), userId, role: 'user', content: lastUser.content, sessionId: sid },
+        { id: randomUUID(), userId, role: 'assistant', content: reply, sessionId: sid },
+      ]);
+
+      await db.update(users)
+        .set({ operationsUsed: sql`${users.operationsUsed} + 1`, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+
+      await log('chat', { sessionId: sid, messageLength: lastUser.content.length }, userId);
+    }
 
     return Response.json({ reply });
   } catch (err) {
