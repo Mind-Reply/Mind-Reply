@@ -1,6 +1,10 @@
 npm install next@14 react@18 react-dom@18
 npm install
 
+git add .
+git commit -m "Add Next.js and fix React versions"
+git push
+
 import { streamText } from 'ai';
 import 'dotenv/config';
 
