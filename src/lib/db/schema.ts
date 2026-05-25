@@ -68,6 +68,15 @@ export const addons = pgTable('addons', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Knowledge base — MR Advisor context entries
+export const knowledge = pgTable('knowledge', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  tags: text('tags'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Activity log — tracks all significant events per user
 export const logs = pgTable('logs', {
   id: text('id').primaryKey(),
@@ -83,3 +92,4 @@ export type Message = typeof messages.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type Addon = typeof addons.$inferSelect;
 export type Log = typeof logs.$inferSelect;
+export type Knowledge = typeof knowledge.$inferSelect;

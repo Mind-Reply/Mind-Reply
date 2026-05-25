@@ -11,6 +11,7 @@ const NAV = [
   { href: '/dashboard/chat', label: 'MR Advisor', icon: '◷' },
   { href: '/dashboard/analytics', label: 'Analytics', icon: '◐' },
   { href: '/dashboard/settings', label: 'Settings', icon: '◉' },
+  { href: '/admin', label: 'Admin', icon: '⬡' },
 ];
 
 export default function DashboardLayoutClient({ children }: { children: React.ReactNode }) {

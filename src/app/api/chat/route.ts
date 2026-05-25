@@ -1,13 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { auth } from '@clerk/nextjs/server';
-import { db, messages, users } from '@/lib/db';
+import { db, messages, users, knowledge } from '@/lib/db';
 import { eq, sql } from 'drizzle-orm';
 import { log } from '@/lib/log';
 import { randomUUID } from 'crypto';
 
 const anthropic = new Anthropic();
 
-const SYSTEM_PROMPT = `You are MR Advisor — the strategic clarity engine inside MindReply.
+const BASE_SYSTEM = `You are MR Advisor — the strategic clarity engine inside MindReply.
 
 Your character:
 - Measured, composed, precise. You never overstate or use hype.
@@ -30,6 +30,21 @@ Vocabulary to avoid: "Absolutely!", "Great question!", "Of course!", "AI", "lang
 
 Keep responses under 150 words unless complexity genuinely requires more. Never write bullet lists unless essential.`;
 
+async function buildSystemPrompt(): Promise<string> {
+  try {
+    const entries = await db.select().from(knowledge);
+    if (entries.length === 0) return BASE_SYSTEM;
+
+    const context = entries.map(e =>
+      `### ${e.title}${e.tags ? ` [${e.tags}]` : ''}\n${e.content}`
+    ).join('\n\n');
+
+    return `${BASE_SYSTEM}\n\n---\n## MindReply Knowledge Base\nUse this context when relevant — never force it:\n\n${context}`;
+  } catch {
+    return BASE_SYSTEM;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { messages: msgs, sessionId, persist } = await request.json();
@@ -45,16 +60,18 @@ export async function POST(request: Request) {
       if (user && user.operationsUsed >= user.operationsLimit) {
         return Response.json({
           error: 'Operation limit reached',
-          message: 'You\'ve reached your monthly operation limit. Upgrade your plan or add more operations in Settings.',
+          message: "You've reached your monthly operation limit. Upgrade your plan or add more operations in Settings.",
           limitReached: true,
         }, { status: 429 });
       }
     }
 
+    const systemPrompt = await buildSystemPrompt();
+
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5',
       max_tokens: 300,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: msgs.map((m: { role: string; content: string }) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
