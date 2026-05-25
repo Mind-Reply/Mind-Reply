@@ -1,3 +1,7 @@
+src/index.ts
+src/app/index.ts
+src/app/api/index.ts
+src/app/page.tsx (corrupted)
 <!doctype html>
 <html lang="en">
 <head>
