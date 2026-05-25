@@ -1,8 +1,9 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-04-10',
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY is not set');
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-04-10' });
+}
 
 export const PLANS = {
   signal: { name: 'Signal', price: 0, currency: 'gbp', interval: 'month' as const },
@@ -13,18 +14,13 @@ export const PLANS = {
 type Plan = (typeof PLANS)[keyof typeof PLANS];
 
 export async function ensureProductAndPrice(plan: Plan) {
+  const stripe = getStripe();
   const products = await stripe.products.list({ active: true });
   let product = products.data.find(p => p.name === plan.name);
-
-  if (!product) {
-    product = await stripe.products.create({ name: plan.name });
-  }
+  if (!product) product = await stripe.products.create({ name: plan.name });
 
   const prices = await stripe.prices.list({ product: product.id, active: true });
-  let price = prices.data.find(
-    p => p.unit_amount === plan.price && p.currency === plan.currency
-  );
-
+  let price = prices.data.find(p => p.unit_amount === plan.price && p.currency === plan.currency);
   if (!price) {
     price = await stripe.prices.create({
       product: product.id,
@@ -33,7 +29,6 @@ export async function ensureProductAndPrice(plan: Plan) {
       recurring: { interval: plan.interval },
     });
   }
-
   return { product, price };
 }
 
@@ -41,5 +36,9 @@ export async function createStripeCustomer(params: {
   email: string;
   metadata?: Record<string, string>;
 }) {
-  return stripe.customers.create({ email: params.email, metadata: params.metadata });
+  return getStripe().customers.create({ email: params.email, metadata: params.metadata });
+}
+
+export function getStripeClient() {
+  return getStripe();
 }

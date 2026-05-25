@@ -6,12 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createStripeCustomer, ensureProductAndPrice, PLANS } from '@/lib/stripe';
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-04-10',
-});
+import { createStripeCustomer, ensureProductAndPrice, getStripeClient, PLANS } from '@/lib/stripe';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +36,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripeClient().checkout.sessions.create({
       customer: customer.id,
       payment_method_types: ['card'],
       mode: 'subscription',
