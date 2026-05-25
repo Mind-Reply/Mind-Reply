@@ -1,4 +1,6 @@
 npm install next@14 react@18 react-dom@18
+npm install
+
 import { streamText } from 'ai';
 import 'dotenv/config';
 
