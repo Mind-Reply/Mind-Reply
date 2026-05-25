@@ -1,5 +1,6 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions 
+npm install @prisma/client prisma openai node-fetch
 
 name: Build and deploy ASP.Net Core app to Azure Web App - Mind-Reply
             - name: Download a Build Artifact
@@ -12,7 +13,8 @@ name: Build and deploy ASP.Net Core app to Azure Web App - Mind-Reply
           <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-HPPGQ3G0GW"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
+  window.dataLayer = window.dataLayer || [];npm install -D typescript @types/node @types/react
+
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
