@@ -10,6 +10,7 @@ const nextConfig = {
     ],
     minimumCacheTTL: 60,
   },
-};
+};async (params) 
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export default nextConfig;

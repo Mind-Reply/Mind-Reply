@@ -1,15 +1,7 @@
 'use client';
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HPPGQ3G0GW"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-HPPGQ3G0GW');
-</script>
-
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
 
 const navLinks = [
   { label: 'Capabilities', href: '#features' },
@@ -22,6 +14,7 @@ const navLinks = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -46,64 +39,62 @@ export default function Header() {
         }}
       >
         <nav className="max-w-screen-xl mx-auto px-6 md:px-12 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3 group" aria-label="MindReply home">
-            <div
-              style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #c9a96e, #7c6b52)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-display, Fraunces, serif)',
-                fontSize: 14, fontWeight: 400, color: '#09090b',
-                fontStyle: 'italic',
-              }}
-            >
-              M
-            </div>
+          <Link href="/" className="flex items-center gap-3 group" aria-label="MindReply home" style={{ textDecoration: 'none' }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #c9a96e, #7c6b52)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-display, Fraunces, serif)',
+              fontSize: 14, fontWeight: 400, color: '#09090b', fontStyle: 'italic',
+            }}>M</div>
             <span style={{
               fontFamily: 'var(--font-display, Fraunces, serif)',
               fontSize: 17, fontWeight: 400, letterSpacing: '-0.01em',
               color: 'var(--foreground, #f2ede6)',
-            }}>
-              MindReply
-            </span>
-          </a>
+            }}>MindReply</span>
+          </Link>
 
           <div className="hidden md:flex items-center gap-9">
             {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                style={{
-                  fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-                  letterSpacing: '0.12em', color: 'var(--muted-foreground, #7a7068)',
-                  textDecoration: 'none', transition: 'color 0.25s ease',
-                }}
+              <a key={link.label} href={link.href} style={{
+                fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+                letterSpacing: '0.12em', color: 'var(--muted-foreground, #7a7068)',
+                textDecoration: 'none', transition: 'color 0.25s ease',
+              }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--foreground, #f2ede6)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted-foreground, #7a7068)')}
-              >
-                {link.label}
-              </a>
+              >{link.label}</a>
             ))}
           </div>
 
           <div className="flex items-center gap-4">
-            <a
-              href="#pricing"
-              className="hidden md:inline-flex items-center gap-2"
-              style={{
-                padding: '9px 20px',
-                borderRadius: 99,
+            {isSignedIn ? (
+              <Link href="/dashboard" style={{
+                padding: '9px 20px', borderRadius: 99,
                 background: 'var(--primary, #c9a96e)',
                 color: 'var(--primary-foreground, #09090b)',
                 fontSize: 11, fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.1em',
-                textDecoration: 'none', transition: 'opacity 0.2s ease',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-            >
-              Enter MR Hub
-            </a>
+                textDecoration: 'none',
+              }}>
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/sign-in" className="hidden md:inline-flex" style={{
+                  fontSize: 11, fontWeight: 600, color: 'var(--muted-foreground, #7a7068)',
+                  textDecoration: 'none', letterSpacing: '0.08em',
+                }}>Sign in</Link>
+                <Link href="/sign-up" className="hidden md:inline-flex items-center gap-2" style={{
+                  padding: '9px 20px', borderRadius: 99,
+                  background: 'var(--primary, #c9a96e)',
+                  color: 'var(--primary-foreground, #09090b)',
+                  fontSize: 11, fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: '0.1em',
+                  textDecoration: 'none',
+                }}>Enter MR Hub</Link>
+              </>
+            )}
 
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -111,25 +102,9 @@ export default function Header() {
               className="md:hidden flex flex-col gap-1.5 w-7"
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
-              <span style={{
-                display: 'block', width: '100%', height: 1,
-                background: 'var(--foreground, #f2ede6)',
-                transition: 'all 0.4s ease',
-                transform: menuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none',
-              }} />
-              <span style={{
-                display: 'block', height: 1,
-                background: 'var(--foreground, #f2ede6)',
-                transition: 'all 0.4s ease',
-                width: menuOpen ? 0 : '66%',
-                opacity: menuOpen ? 0 : 1,
-              }} />
-              <span style={{
-                display: 'block', width: '100%', height: 1,
-                background: 'var(--foreground, #f2ede6)',
-                transition: 'all 0.4s ease',
-                transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none',
-              }} />
+              <span style={{ display: 'block', width: '100%', height: 1, background: 'var(--foreground, #f2ede6)', transition: 'all 0.4s ease', transform: menuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none' }} />
+              <span style={{ display: 'block', height: 1, background: 'var(--foreground, #f2ede6)', transition: 'all 0.4s ease', width: menuOpen ? 0 : '66%', opacity: menuOpen ? 0 : 1 }} />
+              <span style={{ display: 'block', width: '100%', height: 1, background: 'var(--foreground, #f2ede6)', transition: 'all 0.4s ease', transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none' }} />
             </button>
           </div>
         </nav>
@@ -142,34 +117,20 @@ export default function Header() {
           onClick={() => setMenuOpen(false)}
         >
           {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              style={{
-                fontFamily: 'var(--font-display, Fraunces, serif)',
-                fontSize: 28, fontWeight: 300, fontStyle: 'italic',
-                color: 'var(--foreground, #f2ede6)', textDecoration: 'none',
-                transition: 'color 0.2s ease',
-              }}
-            >
-              {link.label}
-            </a>
+            <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)} style={{
+              fontFamily: 'var(--font-display, Fraunces, serif)',
+              fontSize: 28, fontWeight: 300, fontStyle: 'italic',
+              color: 'var(--foreground, #f2ede6)', textDecoration: 'none',
+            }}>{link.label}</a>
           ))}
-          <a
-            href="#pricing"
-            onClick={() => setMenuOpen(false)}
-            style={{
-              marginTop: 16, padding: '12px 32px', borderRadius: 99,
-              background: 'var(--primary, #c9a96e)',
-              color: 'var(--primary-foreground, #09090b)',
-              fontSize: 12, fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              textDecoration: 'none',
-            }}
-          >
-            Enter MR Hub
-          </a>
+          <Link href={isSignedIn ? '/dashboard' : '/sign-up'} onClick={() => setMenuOpen(false)} style={{
+            marginTop: 16, padding: '12px 32px', borderRadius: 99,
+            background: 'var(--primary, #c9a96e)', color: 'var(--primary-foreground, #09090b)',
+            fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
+            textDecoration: 'none',
+          }}>
+            {isSignedIn ? 'Dashboard' : 'Enter MR Hub'}
+          </Link>
         </div>
       )}
     </>

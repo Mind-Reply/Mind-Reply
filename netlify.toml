@@ -1,3 +1,257 @@
+const capabilities = [
+  {
+    id: 'signal',
+    tag: '01',
+    title: 'Signal Orchestration',
+    description: 'Multi-layered workflows executed with contextual intelligence. Your operations know what matters, in what order, completed without supervision — and without losing the thread.',
+    stat: '3.2s',
+    statLabel: 'avg. resolution',
+  },
+  {
+    id: 'inbox',
+    tag: '02',
+    title: 'Inbox Composure',
+    description: 'Threads prioritised, replies calibrated, momentum preserved. Every message handled with the tone, intent, and timing you would deploy yourself — without the cognitive drain of constant triage.',
+    stat: '98%',
+    statLabel: 'voice fidelity',
+    accent: true,
+    tall: true,
+    items: [
+      'Reply shaped — tone: precise, register: client-facing',
+      'Thread resolved — 3 follow-up actions surfaced',
+      'Sequence anchored — Tuesday 9am, no reminder needed',
+    ],
+  },
+  {
+    id: 'content',
+    tag: '03',
+    title: 'Content Fluency',
+    description: 'Drafts, refinements, and publication-ready output — your content pipeline flows with consistent voice and deliberate structure. Built for real output, not approximations of your thinking.',
+  },
+  {
+    id: 'ops',
+    tag: '04',
+    title: 'Invisible Leverage',
+    description: 'Form submissions, data handling, scheduling, and web operations executed with zero friction. Precision at every repetition — so your attention stays on the decisions that actually compound.',
+    stat: '10k+',
+    statLabel: 'ops / month',
+  },
+  {
+    id: 'memory',
+    tag: '05',
+    title: 'Context Recall',
+    description: 'Preferences, patterns, and prior interactions retained across every session — so each operation builds on what came before. The system grows more attuned, quietly, without being asked.',
+  },
+];
+const capabilities = [
+  {
+    id: 'signal',
+    tag: '01',
+    title: 'Signal Orchestration',
+    description: 'Multi-layered workflows executed with contextual intelligence. Your operations know what matters, in what order, completed without supervision — and without losing the thread.',
+    stat: '3.2s',
+    statLabel: 'avg. resolution',
+  },
+  {
+    id: 'inbox',
+    tag: '02',
+    title: 'Inbox Composure',
+    description: 'Threads prioritised, replies calibrated, momentum preserved. Every message handled with the tone, intent, and timing you would deploy yourself — without the cognitive drain of constant triage.',
+    stat: '98%',
+    statLabel: 'voice fidelity',
+    accent: true,
+    tall: true,
+    items: [
+      'Reply shaped — tone: precise, register: client-facing',
+      'Thread resolved — 3 follow-up actions surfaced',
+      'Sequence anchored — Tuesday 9am, no reminder needed',
+    ],
+  },
+  {
+    id: 'content',
+    tag: '03',
+    title: 'Content Fluency',
+    description: 'Drafts, refinements, and publication-ready output — your content pipeline flows with consistent voice and deliberate structure. Built for real output, not approximations of your thinking.',
+  },
+  {
+    id: 'ops',
+    tag: '04',
+    title: 'Invisible Leverage',
+    description: 'Form submissions, data handling, scheduling, and web operations executed with zero friction. Precision at every repetition — so your attention stays on the decisions that actually compound.',
+    stat: '10k+',
+    statLabel: 'ops / month',
+  },
+  {
+    id: 'memory',
+    tag: '05',
+    title: 'Context Recall',
+    description: 'Preferences, patterns, and prior interactions retained across every session — so each operation builds on what came before. The system grows more attuned, quietly, without being asked.',
+  },
+];
+<p style={{
+  fontSize: 15, fontWeight: 500,
+  color: 'var(--foreground, #f2ede6)', opacity: 0.85,
+  maxWidth: 400, marginBottom: 20, lineHeight: 1.6,
+}}>
+  MindReply is the invisible infrastructure between your attention and everything competing for it.
+</p>
+
+<p style={{
+  maxWidth: 380, fontSize: 13.5, lineHeight: 1.75,
+  color: 'var(--muted-foreground, #7a7068)',
+  borderLeft: '2px solid rgba(201,169,110,0.3)',
+  paddingLeft: 20, marginLeft: 2,
+}}>
+  Precision-calibrated operations across messages, tasks, content and workflow — executed with the composure of someone who already understands the situation, and knows exactly what to do next.
+</p>
+const OPERATIONS = [
+  'Priority distilled — 3 signal threads surfaced from 51 unread',
+  'Voice calibrated — fidelity 98.4% on client draft #3',
+  'Intelligence compressed — 14 sources → 1 decision-ready brief',
+  'Inbox composure restored — 9 deliberate responses dispatched',
+  'Thread momentum preserved — 4 open loops closed with precision',
+  'Weekly architecture locked — priorities ranked, distractions absorbed',
+  'Operation chain resolved — 6-step workflow completed autonomously',
+  'Context deepened — 17 behavioural patterns committed to memory',
+  'Proposal refined — tone sharpened, structure tightened, sent',
+  'Noise filtered — 23 low-signal items cleared without your attention',
+];
+const services = [
+  {
+    id: 'momentum',
+    number: '01',
+    title: 'Momentum Clarity',
+    subtitle: 'Growth Signals & Strategic Priorities',
+    description: 'MindReply surfaces what is suppressing your momentum, converts daily signals into ranked priorities, and sharpens conversion where demand already flows — before you even ask.',
+    plan: 'Included in Pro',
+    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80&fit=crop',
+    alt: 'Illuminated data dashboard on dark monitor in a calm professional environment, representing growth signal analysis and strategic clarity',
+  },
+  {
+    id: 'inbox',
+    number: '02',
+    title: 'Inbox Composure',
+    subtitle: 'Messages, Replies & Thread Architecture',
+    description: 'Reads, ranks, and responds across email and team channels in your voice — crisp, timely, without the cognitive overhead of constant triage. Your inbox becomes a managed asset, not a liability.',
+    plan: 'Included in all plans',
+    image: 'https://images.unsplash.com/photo-1483389127117-b6a2102724ae?w=800&q=80&fit=crop',
+    alt: 'Clean minimal desk with open laptop showing message interface, soft ambient lighting — visual representation of inbox composure and focused communication',
+  },
+  {
+    id: 'content',
+    number: '03',
+    title: 'Content Fluency',
+    subtitle: 'Writing, Refinement & Deliberate Publishing',
+    description: 'From raw concept to publish-ready output — your content flows with consistent voice, deliberate rhythm, and none of the blank-page friction that bleeds hours from your week.',
+    plan: 'Growth & Pro',
+    image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80&fit=crop',
+    alt: 'Open notebook on warm-lit desk with pen, moody atmospheric writing space representing content creation with clarity and precision',
+  },
+  {
+    id: 'research',
+    number: '04',
+    title: 'Deep Intelligence',
+    subtitle: 'Research Synthesis & Decision Briefing',
+    description: 'Complex research distilled into clear, decision-ready summaries. What matters, surfaced. What does not, discarded. Decisions informed before the meeting even starts — or the question is even asked.',
+    plan: 'Growth & Pro',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&fit=crop',
+    alt: 'Abstract data visualisation on dark screen with low office lighting, representing research intelligence gathering and analytical precision',
+  },
+  {
+    id: 'ops',
+    number: '05',
+    title: 'Deliberate Execution',
+    subtitle: 'Workflow Operations & Digital Precision',
+    description: 'Forms, database entries, scheduling, and web tasks handled with measured precision — zero supervision, full accountability, nothing dropped. The operational layer that never needs managing.',
+    plan: 'Pro',
+    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80&fit=crop',
+    alt: 'Code and workflow on dark computer screen representing automated digital operations, precision workflow execution and invisible leverage',
+  },
+];
+// h2:
+Five disciplines.<br />
+<em style={{ color: 'rgba(201,169,110,0.75)' }}>One unbroken composure.</em>
+// eyebrow:
+The Architecture
+
+// h2:
+Composure is<br />
+<em style={{ color: 'rgba(201,169,110,0.75)' }}>a structural quality.</em>
+
+// paragraph 1:
+MindReply was built for a specific kind of professional: one who holds high standards, operates across multiple domains simultaneously, and cannot afford to bleed bandwidth into noise that compounds.
+
+// paragraph 2:
+The ecosystem is designed around a single conviction — that <em style={{ color: 'var(--foreground, #f2ede6)', fontStyle: 'normal' }}>operational composure, the capacity to handle complexity without chaos</em> — is not a personality trait. It is achievable infrastructure.
+// quote:
+"It does not feel like software. It feels like having someone who already understands the situation — and knows exactly what to do next, without being told."
+
+// attribution:
+Agency Principal · London
+[
+  {
+    icon: '◎',
+    title: 'Signal before volume',
+    desc: 'Every capability is calibrated to surface what matters and absorb what does not. The ecosystem prioritises decision quality over activity quantity — always.',
+  },
+  {
+    icon: '◈',
+    title: 'Composure under pressure',
+    desc: 'High-standard work demands a system that does not degrade under load. MindReply is built for demanding environments — not comfortable ones.',
+  },
+  {
+    icon: '◷',
+    title: 'Context that compounds',
+    desc: 'Memory is not storage — it is accumulation. Each interaction builds richer context, so the ecosystem grows more attuned over time, without prompting.',
+  },
+  {
+    icon: '◐',
+    title: 'Privacy without compromise',
+    desc: 'End-to-end encryption. Your context trains nothing outside your own instance. Discretion is structural — not a setting, not a promise.',
+  },
+]
+[
+  { stat: '98%', label: 'Voice fidelity across all message types' },
+  { stat: '<4s', label: 'Average operation resolution time' },
+  { stat: 'AES-256', label: 'Encryption standard for all context memory' },
+  { stat: '20min', label: 'Typical onboarding to first live operation' },
+]
+// eyebrow:
+Clarity Tools · Free Access
+
+// h2:
+Discover where your attention<br />
+<em style={{ color: 'rgba(201,169,110,0.75)' }}>is actually being spent.</em>
+
+// subtitle:
+Two diagnostic instruments, no login required. Run them, get clarity, decide from there.
+const CLARITY_QUESTIONS = [
+  {
+    q: 'How often does your inbox dictate the shape of your day?',
+    options: ['Rarely — I own my schedule', 'Sometimes — it slips', 'Most days, reliably', 'It runs everything'],
+    scores: [0, 1, 2, 3],
+  },
+  {
+    q: 'What proportion of your week is repeatable work you could delegate?',
+    options: ['Under 10%', '10–25%', '25–50%', 'More than half'],
+    scores: [0, 1, 2, 3],
+  },
+  {
+    q: 'How clear is your single most important growth priority right now?',
+    options: ['Crystalline — I know exactly', 'Fairly clear', 'Somewhat foggy', 'Genuinely unclear'],
+    scores: [0, 1, 2, 3],
+  },
+  {
+    q: 'How often do urgent things displace the important ones?',
+    options: ['Almost never', 'Occasionally', 'Weekly', 'Daily, without fail'],
+    scores: [0, 1, 2, 3],
+  },
+  {
+    q: 'When did you last complete three hours of uninterrupted deep work?',
+    options: ['This week', 'Last week', 'Last month', "I genuinely can't recall"],
+    scores: [0, 1, 2, 3],
+  },
+];
 [build]
   command = "next build"
   publish = ".next"
