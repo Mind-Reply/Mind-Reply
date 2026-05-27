@@ -80,6 +80,18 @@ export const gmailTokens = pgTable('gmail_tokens', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Gmail OAuth tokens per user
+export const gmailTokens = pgTable('gmail_tokens', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
+  accessToken: text('access_token').notNull(),
+  refreshToken: text('refresh_token'),
+  expiresAt: timestamp('expires_at'),
+  email: text('email'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Knowledge base — MR Advisor context entries
 export const knowledge = pgTable('knowledge', {
   id: text('id').primaryKey(),
@@ -105,4 +117,5 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type Addon = typeof addons.$inferSelect;
 export type Log = typeof logs.$inferSelect;
 export type Knowledge = typeof knowledge.$inferSelect;
+export type GmailToken = typeof gmailTokens.$inferSelect;
 export type GmailToken = typeof gmailTokens.$inferSelect;
