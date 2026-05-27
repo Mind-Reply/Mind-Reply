@@ -1,100 +1,230 @@
-'use client';
-export const dynamic = 'force-dynamic';
-import React, { useState, useEffect } from 'react';
+import {
+  pgTable,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  jsonb,
+  real,
+  pgEnum,
+} from 'drizzle-orm/pg-core';
 
-type Message = { id: string; role: 'user' | 'assistant'; content: string; createdAt: string; sessionId?: string };
+// ─── Enums ────────────────────────────────────────────────────────────────────
 
-export default function InboxPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+export const planEnum = pgEnum('plan', ['free', 'personal', 'business', 'creator']);
+export const toneEnum = pgEnum('tone', ['neutral', 'warm', 'assertive', 'direct']);
+export const sessionTypeEnum = pgEnum('session_type', ['audio', 'video', 'chat']);
+export const bookingStatusEnum = pgEnum('booking_status', [
+  'pending', 'confirmed', 'completed', 'cancelled', 'released',
+]);
+export const signalTypeEnum = pgEnum('signal_type', [
+  'avoidance', 'tension', 'overload', 'delay', 'clarity', 'urgency',
+]);
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'suggestion', 'tone_upgrade', 'follow_up', 'inactivity', 'signal', 'system',
+]);
 
-  useEffect(() => {
-    fetch('/api/messages').then(r => r.json()).then(data => { setMessages(data); setLoading(false); });
-  }, []);
+// ─── Users ────────────────────────────────────────────────────────────────────
 
-  const sessions = Array.from(new Set(messages.map(m => m.sessionId || 'default')));
-  const filtered = selectedSession
-    ? messages.filter(m => (m.sessionId || 'default') === selectedSession)
-    : messages;
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),                     // Clerk userId
+  email: text('email').notNull(),
+  name: text('name'),
+  plan: planEnum('plan').notNull().default('free'),
+  stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  subscriptionStatus: text('subscription_status').default('inactive'),
+  subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end'),
+  operationsUsed: integer('operations_used').notNull().default(0),
+  operationsLimit: integer('operations_limit').notNull().default(10),
+  trialMessagesUsed: integer('trial_messages_used').notNull().default(0),
+  trialStartedAt: timestamp('trial_started_at'),
+  locale: text('locale').default('en'),            // 'en' | 'ru' | 'de'
+  region: text('region').default('EU'),            // 'US' | 'EU' | 'RU'
+  referralCode: text('referral_code'),
+  referredBy: text('referred_by'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
 
-  return (
-    <div style={{ padding: '40px', display: 'flex', gap: 24, height: 'calc(100vh - 0px)', overflow: 'hidden' }}>
-      {/* Sessions sidebar */}
-      <div style={{
-        width: 220, flexShrink: 0,
-        background: '#111115', border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: 16, padding: 16, overflow: 'auto',
-      }}>
-        <p style={{ fontSize: 10, color: '#7a7068', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
-          Conversations
-        </p>
-        <button
-          onClick={() => setSelectedSession(null)}
-          style={{
-            width: '100%', padding: '8px 12px', borderRadius: 8, textAlign: 'left',
-            background: !selectedSession ? 'rgba(201,169,110,0.1)' : 'transparent',
-            border: `1px solid ${!selectedSession ? 'rgba(201,169,110,0.3)' : 'transparent'}`,
-            color: !selectedSession ? '#c9a96e' : '#7a7068', fontSize: 12, cursor: 'pointer', marginBottom: 4,
-          }}
-        >
-          All messages
-        </button>
-        {sessions.map(s => (
-          <button key={s} onClick={() => setSelectedSession(s)} style={{
-            width: '100%', padding: '8px 12px', borderRadius: 8, textAlign: 'left',
-            background: selectedSession === s ? 'rgba(201,169,110,0.1)' : 'transparent',
-            border: `1px solid ${selectedSession === s ? 'rgba(201,169,110,0.3)' : 'transparent'}`,
-            color: selectedSession === s ? '#c9a96e' : '#7a7068', fontSize: 12, cursor: 'pointer', marginBottom: 4,
-          }}>
-            Session {s.slice(0, 8)}…
-          </button>
-        ))}
-      </div>
+// ─── Sessions (conversation sessions) ────────────────────────────────────────
 
-      {/* Messages */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontFamily: 'Fraunces, serif', fontSize: 28, fontWeight: 300, color: '#f2ede6', marginBottom: 4 }}>
-            Inbox
-          </h1>
-          <p style={{ fontSize: 13, color: '#7a7068' }}>{filtered.length} messages</p>
-        </div>
+export const sessions = pgTable('sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title'),
+  tone: toneEnum('tone').default('neutral'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  lastMessageAt: timestamp('last_message_at').notNull().defaultNow(),
+});
 
-        {loading ? (
-          <p style={{ color: '#7a7068', fontSize: 13 }}>Loading messages...</p>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <p style={{ fontFamily: 'Fraunces, serif', fontSize: 20, color: '#f2ede6', fontWeight: 300, marginBottom: 8 }}>
-              No messages yet
-            </p>
-            <p style={{ fontSize: 13, color: '#7a7068' }}>Start a conversation with MR Advisor to see your history here.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {filtered.map(msg => (
-              <div key={msg.id} style={{
-                background: '#111115', border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 14, padding: '16px 20px',
-                borderLeft: `3px solid ${msg.role === 'assistant' ? '#c9a96e' : 'rgba(255,255,255,0.1)'}`,
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
-                    color: msg.role === 'assistant' ? '#c9a96e' : '#7a7068',
-                  }}>
-                    {msg.role === 'assistant' ? 'MR Advisor' : 'You'}
-                  </span>
-                  <span style={{ fontSize: 10, color: '#7a7068' }}>
-                    {new Date(msg.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                <p style={{ fontSize: 13, color: '#f2ede6', lineHeight: 1.65 }}>{msg.content}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+// ─── Messages ─────────────────────────────────────────────────────────────────
+
+export const messages = pgTable('messages', {
+  id: text('id').primaryKey(),
+  sessionId: text('session_id').notNull().references(() => sessions.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: text('role').notNull(),                    // 'user' | 'assistant'
+  content: text('content').notNull(),
+  confidenceScore: integer('confidence_score'),    // 0–100
+  toneEffect: text('tone_effect'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── Subconscious Layer ───────────────────────────────────────────────────────
+
+export const signals = pgTable('signals', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  messageId: text('message_id').references(() => messages.id, { onDelete: 'set null' }),
+  type: signalTypeEnum('type').notNull(),
+  description: text('description').notNull(),
+  intensity: real('intensity').notNull().default(0.5),  // 0.0–1.0
+  acknowledged: boolean('acknowledged').notNull().default(false),
+  acknowledgedAt: timestamp('acknowledged_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const patternSnapshots = pgTable('pattern_snapshots', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  windowDays: integer('window_days').notNull(),    // 7 | 30
+  avoidanceScore: real('avoidance_score').default(0),
+  tensionScore: real('tension_score').default(0),
+  overloadScore: real('overload_score').default(0),
+  delayScore: real('delay_score').default(0),
+  dominantSignal: signalTypeEnum('dominant_signal'),
+  messageCount: integer('message_count').notNull().default(0),
+  meta: jsonb('meta'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── Subscriptions (webhook truth record) ────────────────────────────────────
+
+export const subscriptions = pgTable('subscriptions', {
+  id: text('id').primaryKey(),                     // Stripe subscription ID
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  stripeCustomerId: text('stripe_customer_id').notNull(),
+  plan: planEnum('plan').notNull(),
+  status: text('status').notNull(),                // Stripe status string
+  currentPeriodStart: timestamp('current_period_start').notNull(),
+  currentPeriodEnd: timestamp('current_period_end').notNull(),
+  cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
+  cancelledAt: timestamp('cancelled_at'),
+  meta: jsonb('meta'),                             // full Stripe event payload
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const notifications = pgTable('notifications', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: notificationTypeEnum('type').notNull(),
+  title: text('title').notNull(),
+  body: text('body').notNull(),
+  read: boolean('read').notNull().default(false),
+  actionUrl: text('action_url'),
+  meta: jsonb('meta'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+
+export const reviews = pgTable('reviews', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  rating: integer('rating').notNull(),             // 1–5
+  body: text('body'),
+  approved: boolean('approved').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── Expert Profiles (StayHealthy / BuMind) ──────────────────────────────────
+
+export const expertProfiles = pgTable('expert_profiles', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
+  name: text('name').notNull(),
+  specialization: text('specialization').notNull(),
+  bio: text('bio'),
+  pricePerHour: integer('price_per_hour').notNull(),   // in EUR cents
+  sessionTypes: text('session_types').array().notNull().default(['chat']),
+  available: boolean('available').notNull().default(true),
+  rating: real('rating').default(0),
+  reviewCount: integer('review_count').default(0),
+  stripeAccountId: text('stripe_account_id'),
+  meta: jsonb('meta'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── Bookings ─────────────────────────────────────────────────────────────────
+
+export const bookings = pgTable('bookings', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  expertId: text('expert_id').notNull().references(() => expertProfiles.id),
+  sessionType: sessionTypeEnum('session_type').notNull(),
+  status: bookingStatusEnum('status').notNull().default('pending'),
+  scheduledAt: timestamp('scheduled_at').notNull(),
+  durationMinutes: integer('duration_minutes').notNull().default(60),
+  description: text('description'),
+  stripePaymentIntentId: text('stripe_payment_intent_id'),
+  amountCents: integer('amount_cents').notNull(),
+  capturedAt: timestamp('captured_at'),
+  cancelledAt: timestamp('cancelled_at'),
+  expertConfirmedAt: timestamp('expert_confirmed_at'),
+  reminderSentAt: timestamp('reminder_sent_at'),
+  meta: jsonb('meta'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// ─── Knowledge Base (MRagent context injection) ───────────────────────────────
+
+export const knowledge = pgTable('knowledge', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  tags: text('tags'),
+  active: boolean('active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── Logs (operational audit trail) ──────────────────────────────────────────
+
+export const logs = pgTable('logs', {
+  id: text('id').primaryKey(),
+  userId: text('user_id'),
+  type: text('type').notNull(),
+  meta: jsonb('meta'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── Addons ───────────────────────────────────────────────────────────────────
+
+export const addons = pgTable('addons', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  active: boolean('active').notNull().default(true),
+  stripeItemId: text('stripe_item_id'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── Type Exports ─────────────────────────────────────────────────────────────
+
+export type User = typeof users.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type Message = typeof messages.$inferSelect;
+export type Signal = typeof signals.$inferSelect;
+export type PatternSnapshot = typeof patternSnapshots.$inferSelect;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type Review = typeof reviews.$inferSelect;
+export type ExpertProfile = typeof expertProfiles.$inferSelect;
+export type Booking = typeof bookings.$inferSelect;
+export type Knowledge = typeof knowledge.$inferSelect;
+export type Log = typeof logs.$inferSelect;
+export type Addon = typeof addons.$inferSelect;

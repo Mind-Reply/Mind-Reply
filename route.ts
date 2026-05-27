@@ -1,252 +1,223 @@
-'use client';
-import React, { useState } from 'react';
-import type { Log, User, Knowledge } from '@/lib/db/schema';
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import Anthropic from '@anthropic-ai/sdk';
+import { db } from '@/lib/db';
+import { users, sessions, messages, signals, logs } from '@/lib/db/schema';
+import { eq, and, gte, count } from 'drizzle-orm';
+import { subconsciousService } from '@/services/subconscious.service';
+import { detectRegion, buildSystemPrompt } from '@/services/language.service';
+import { createId } from '@/lib/utils';
 
-const LOG_COLORS: Record<string, string> = {
-  chat: '#818cf8',
-  task_created: '#4ade80',
-  plan_upgraded: '#c9a96e',
-  addon_purchased: '#f97316',
-  contact_form: '#7a7068',
+export const dynamic = 'force-dynamic';
+
+// ─── Trial Gate Configuration ─────────────────────────────────────────────────
+
+const TRIAL_MESSAGE_LIMIT = 3;
+const FREE_PLAN_LIMIT = 10;
+
+// ─── Language Map ─────────────────────────────────────────────────────────────
+
+const PLAN_LIMITS: Record<string, number> = {
+  free: FREE_PLAN_LIMIT,
+  personal: 999999,
+  business: 999999,
+  creator: 999999,
 };
 
-export default function AdminClient({
-  logs, users, knowledgeEntries, stats,
-}: {
-  logs: Log[];
-  users: User[];
-  knowledgeEntries: Knowledge[];
-  stats: { totalUsers: number; planCounts: Record<string, number> };
-}) {
-  const [tab, setTab] = useState<'logs' | 'users' | 'knowledge'>('logs');
-  const [logFilter, setLogFilter] = useState('all');
-  const [kbForm, setKbForm] = useState({ title: '', content: '', tags: '' });
-  const [kbSaving, setKbSaving] = useState(false);
-  const [kbList, setKbList] = useState(knowledgeEntries);
+// ─── POST /api/chat ───────────────────────────────────────────────────────────
 
-  const logTypes = ['all', ...Array.from(new Set(logs.map(l => l.type)))];
-  const filteredLogs = logFilter === 'all' ? logs : logs.filter(l => l.type === logFilter);
+export async function POST(req: NextRequest) {
+  try {
+    const { userId } = await auth();
 
-  async function saveKnowledge(e: React.FormEvent) {
-    e.preventDefault();
-    setKbSaving(true);
-    const res = await fetch('/api/knowledge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(kbForm),
-    });
-    if (res.ok) {
-      const entry = await res.json();
-      setKbList(prev => [entry, ...prev]);
-      setKbForm({ title: '', content: '', tags: '' });
+    // ── Auth check ──────────────────────────────────────────────────────────
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required.' },
+        { status: 401 }
+      );
     }
-    setKbSaving(false);
+
+    // ── Parse body ──────────────────────────────────────────────────────────
+    const body = await req.json();
+    const { message, sessionId, tone = 'neutral' } = body as {
+      message: string;
+      sessionId?: string;
+      tone?: 'neutral' | 'warm' | 'assertive' | 'direct';
+    };
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return NextResponse.json({ error: 'Message is required.' }, { status: 400 });
+    }
+
+    if (message.length > 4000) {
+      return NextResponse.json({ error: 'Message exceeds maximum length.' }, { status: 400 });
+    }
+
+    // ── Fetch user ───────────────────────────────────────────────────────────
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+
+    if (!user) {
+      return NextResponse.json({ error: 'User record not found.' }, { status: 404 });
+    }
+
+    // ── Trial gate (free plan users) ─────────────────────────────────────────
+    if (user.plan === 'free' && user.trialMessagesUsed >= TRIAL_MESSAGE_LIMIT) {
+      return NextResponse.json(
+        {
+          error: 'trial_exhausted',
+          message: 'Your trial has concluded. Activate a plan to continue.',
+          trialLimit: TRIAL_MESSAGE_LIMIT,
+          upgradeUrl: '/pricing',
+        },
+        { status: 402 }
+      );
+    }
+
+    // ── Operations limit ─────────────────────────────────────────────────────
+    const planLimit = PLAN_LIMITS[user.plan] ?? FREE_PLAN_LIMIT;
+    if (user.operationsUsed >= planLimit) {
+      return NextResponse.json(
+        {
+          error: 'operations_exhausted',
+          message: 'Monthly operations limit reached.',
+          upgradeUrl: '/pricing',
+        },
+        { status: 402 }
+      );
+    }
+
+    // ── Resolve or create session ─────────────────────────────────────────────
+    let activeSessionId = sessionId;
+    if (!activeSessionId) {
+      activeSessionId = createId();
+      await db.insert(sessions).values({
+        id: activeSessionId,
+        userId,
+        tone,
+      });
+    }
+
+    // ── Detect region and build system prompt ────────────────────────────────
+    const region = user.region ?? detectRegion(req);
+    const systemPrompt = buildSystemPrompt(region, tone);
+
+    // ── Fetch recent session history (last 10 messages for context) ──────────
+    const history = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.sessionId, activeSessionId))
+      .orderBy(messages.createdAt)
+      .limit(10);
+
+    const conversationHistory = history.map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    }));
+
+    // ── Run Subconscious Layer in parallel with main reply ───────────────────
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+    const [mainReply, subconsciousAnalysis] = await Promise.all([
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [
+          ...conversationHistory,
+          { role: 'user', content: message },
+        ],
+      }),
+      subconsciousService.analyze(message),
+    ]);
+
+    const replyContent =
+      mainReply.content[0].type === 'text' ? mainReply.content[0].text : '';
+
+    // ── Persist user message ─────────────────────────────────────────────────
+    const userMessageId = createId();
+    await db.insert(messages).values({
+      id: userMessageId,
+      sessionId: activeSessionId,
+      userId,
+      role: 'user',
+      content: message,
+      confidenceScore: subconsciousAnalysis.confidenceScore,
+      toneEffect: subconsciousAnalysis.toneEffect,
+    });
+
+    // ── Persist assistant reply ───────────────────────────────────────────────
+    const assistantMessageId = createId();
+    await db.insert(messages).values({
+      id: assistantMessageId,
+      sessionId: activeSessionId,
+      userId,
+      role: 'assistant',
+      content: replyContent,
+    });
+
+    // ── Persist signals (non-blocking) ────────────────────────────────────────
+    if (subconsciousAnalysis.signals.length > 0) {
+      await db.insert(signals).values(
+        subconsciousAnalysis.signals.map((s) => ({
+          id: createId(),
+          userId,
+          messageId: userMessageId,
+          type: s.type,
+          description: s.description,
+          intensity: s.intensity,
+        }))
+      ).catch((err) => {
+        console.error('[Chat] signal persistence failed silently:', err);
+      });
+    }
+
+    // ── Update user counters ──────────────────────────────────────────────────
+    await db
+      .update(users)
+      .set({
+        operationsUsed: user.operationsUsed + 1,
+        trialMessagesUsed:
+          user.plan === 'free'
+            ? user.trialMessagesUsed + 1
+            : user.trialMessagesUsed,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    // ── Log (async, non-blocking) ─────────────────────────────────────────────
+    db.insert(logs).values({
+      id: createId(),
+      userId,
+      type: 'chat',
+      meta: {
+        sessionId: activeSessionId,
+        tone,
+        region,
+        confidenceScore: subconsciousAnalysis.confidenceScore,
+        signalCount: subconsciousAnalysis.signals.length,
+      },
+    }).catch(() => {});
+
+    // ── Return response — exact contract per brief ────────────────────────────
+    return NextResponse.json({
+      reply: replyContent,
+      confidenceScore: subconsciousAnalysis.confidenceScore,
+      toneEffect: subconsciousAnalysis.toneEffect,
+      signals: subconsciousAnalysis.signals,
+      sessionId: activeSessionId,
+      messageId: userMessageId,
+      operationsRemaining: planLimit - (user.operationsUsed + 1),
+      trialMessagesRemaining:
+        user.plan === 'free'
+          ? Math.max(0, TRIAL_MESSAGE_LIMIT - (user.trialMessagesUsed + 1))
+          : null,
+    });
+  } catch (err) {
+    console.error('[Chat API] fatal error:', err);
+    return NextResponse.json(
+      { error: 'An operational error occurred. Please retry.' },
+      { status: 500 }
+    );
   }
-
-  async function deleteKnowledge(id: string) {
-    await fetch(`/api/knowledge/${id}`, { method: 'DELETE' });
-    setKbList(prev => prev.filter(k => k.id !== id));
-  }
-
-  return (
-    <div style={{ minHeight: '100vh', background: '#09090b', padding: '40px' }}>
-      {/* Header */}
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #c9a96e, #7c6b52)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Fraunces, serif', fontSize: 12, fontStyle: 'italic', color: '#09090b' }}>M</div>
-              <span style={{ fontSize: 10, color: '#7a7068', textTransform: 'uppercase', letterSpacing: '0.14em', fontWeight: 700 }}>Admin Panel</span>
-            </div>
-            <h1 style={{ fontFamily: 'Fraunces, serif', fontSize: 28, fontWeight: 300, color: '#f2ede6' }}>
-              Operational Control
-            </h1>
-          </div>
-          <a href="/dashboard" style={{ fontSize: 12, color: '#7a7068', textDecoration: 'none' }}>← Dashboard</a>
-        </div>
-
-        {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 32 }}>
-          {[
-            { label: 'Total Users', value: stats.totalUsers },
-            { label: 'Signal', value: stats.planCounts.signal || 0 },
-            { label: 'Growth', value: stats.planCounts.growth || 0 },
-            { label: 'Pro', value: stats.planCounts.pro || 0 },
-          ].map((s, i) => (
-            <div key={i} style={{ background: '#111115', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '16px 20px' }}>
-              <p style={{ fontSize: 10, color: '#7a7068', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{s.label}</p>
-              <p style={{ fontFamily: 'Fraunces, serif', fontSize: 28, fontWeight: 300, color: '#c9a96e', lineHeight: 1 }}>{s.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 0 }}>
-          {(['logs', 'users', 'knowledge'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em',
-              color: tab === t ? '#c9a96e' : '#7a7068',
-              borderBottom: `2px solid ${tab === t ? '#c9a96e' : 'transparent'}`,
-              marginBottom: -1,
-            }}>{t}</button>
-          ))}
-        </div>
-
-        {/* LOGS TAB */}
-        {tab === 'logs' && (
-          <div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-              {logTypes.map(t => (
-                <button key={t} onClick={() => setLogFilter(t)} style={{
-                  padding: '5px 14px', borderRadius: 99, fontSize: 10, fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
-                  border: `1px solid ${logFilter === t ? (LOG_COLORS[t] || '#c9a96e') + '66' : 'rgba(255,255,255,0.08)'}`,
-                  background: logFilter === t ? (LOG_COLORS[t] || '#c9a96e') + '15' : 'transparent',
-                  color: logFilter === t ? (LOG_COLORS[t] || '#c9a96e') : '#7a7068',
-                }}>{t}</button>
-              ))}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {filteredLogs.map(log => (
-                <div key={log.id} style={{
-                  background: '#111115', border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 12, padding: '14px 18px',
-                  borderLeft: `3px solid ${LOG_COLORS[log.type] || '#7a7068'}`,
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: LOG_COLORS[log.type] || '#7a7068' }}>
-                      {log.type}
-                    </span>
-                    <span style={{ fontSize: 10, color: '#7a7068' }}>
-                      {new Date(log.createdAt).toLocaleString()}
-                      {log.userId && <span style={{ marginLeft: 8, color: '#4a4a52' }}>· {log.userId.slice(0, 12)}…</span>}
-                    </span>
-                  </div>
-                  <pre style={{
-                    fontSize: 11, color: 'rgba(242,237,230,0.5)', background: 'rgba(255,255,255,0.02)',
-                    borderRadius: 8, padding: '8px 12px', margin: 0, overflow: 'auto',
-                    fontFamily: 'monospace', lineHeight: 1.5,
-                  }}>
-                    {JSON.stringify(log.meta, null, 2)}
-                  </pre>
-                </div>
-              ))}
-              {filteredLogs.length === 0 && (
-                <p style={{ color: '#7a7068', fontSize: 13, textAlign: 'center', padding: '40px 0' }}>No logs yet.</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* USERS TAB */}
-        {tab === 'users' && (
-          <div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {users.map(user => (
-                <div key={user.id} style={{
-                  background: '#111115', border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 12, padding: '14px 20px',
-                  display: 'flex', alignItems: 'center', gap: 16,
-                }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#f2ede6', marginBottom: 2 }}>{user.email}</p>
-                    <p style={{ fontSize: 11, color: '#7a7068' }}>{user.name || 'No name'} · Joined {new Date(user.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <span style={{
-                      padding: '3px 10px', borderRadius: 99, fontSize: 9, fontWeight: 700,
-                      textTransform: 'uppercase', letterSpacing: '0.1em',
-                      background: user.plan === 'pro' ? 'rgba(242,237,230,0.1)' : user.plan === 'growth' ? 'rgba(201,169,110,0.1)' : 'rgba(122,112,104,0.1)',
-                      color: user.plan === 'pro' ? '#f2ede6' : user.plan === 'growth' ? '#c9a96e' : '#7a7068',
-                    }}>{user.plan}</span>
-                    <span style={{ fontSize: 11, color: '#7a7068' }}>{user.operationsUsed}/{user.operationsLimit === 999999 ? '∞' : user.operationsLimit} ops</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* KNOWLEDGE BASE TAB */}
-        {tab === 'knowledge' && (
-          <div>
-            {/* Add entry form */}
-            <form onSubmit={saveKnowledge} style={{
-              background: '#111115', border: '1px solid rgba(201,169,110,0.2)',
-              borderRadius: 16, padding: 24, marginBottom: 24,
-            }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#f2ede6', marginBottom: 16 }}>
-                Add Knowledge Entry
-              </p>
-              <p style={{ fontSize: 12, color: '#7a7068', marginBottom: 16, lineHeight: 1.6 }}>
-                These entries are injected into MR Advisor's context — use them to teach the AI about MindReply's services, pricing, policies, and tone.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
-                <input
-                  required value={kbForm.title}
-                  onChange={e => setKbForm(f => ({ ...f, title: e.target.value }))}
-                  placeholder="Title (e.g. 'Pro Plan Features')"
-                  style={{ padding: '10px 14px', borderRadius: 10, background: '#1a1a1f', border: '1px solid rgba(255,255,255,0.08)', color: '#f2ede6', fontSize: 13, outline: 'none' }}
-                />
-                <textarea
-                  required value={kbForm.content}
-                  onChange={e => setKbForm(f => ({ ...f, content: e.target.value }))}
-                  placeholder="Content — what should MR Advisor know about this?"
-                  rows={4}
-                  style={{ padding: '10px 14px', borderRadius: 10, background: '#1a1a1f', border: '1px solid rgba(255,255,255,0.08)', color: '#f2ede6', fontSize: 13, outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
-                />
-                <input
-                  value={kbForm.tags}
-                  onChange={e => setKbForm(f => ({ ...f, tags: e.target.value }))}
-                  placeholder="Tags (comma separated, e.g. pricing, pro, features)"
-                  style={{ padding: '10px 14px', borderRadius: 10, background: '#1a1a1f', border: '1px solid rgba(255,255,255,0.08)', color: '#f2ede6', fontSize: 13, outline: 'none' }}
-                />
-              </div>
-              <button type="submit" disabled={kbSaving} style={{
-                padding: '9px 20px', borderRadius: 10, background: '#c9a96e',
-                color: '#09090b', fontSize: 11, fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-                border: 'none', cursor: 'pointer',
-              }}>
-                {kbSaving ? 'Saving…' : 'Add to Knowledge Base'}
-              </button>
-            </form>
-
-            {/* Entries list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {kbList.map(entry => (
-                <div key={entry.id} style={{
-                  background: '#111115', border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 12, padding: '16px 20px',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#f2ede6' }}>{entry.title}</p>
-                    <button onClick={() => deleteKnowledge(entry.id)} style={{
-                      background: 'none', border: 'none', color: '#7a7068', cursor: 'pointer', fontSize: 16, padding: 0, flexShrink: 0,
-                    }}>×</button>
-                  </div>
-                  <p style={{ fontSize: 12, color: '#7a7068', lineHeight: 1.6, marginBottom: 8 }}>{entry.content}</p>
-                  {entry.tags && (
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      {entry.tags.split(',').map(tag => (
-                        <span key={tag} style={{ fontSize: 9, padding: '2px 8px', borderRadius: 99, background: 'rgba(201,169,110,0.08)', color: '#c9a96e', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                          {tag.trim()}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-              {kbList.length === 0 && (
-                <p style={{ color: '#7a7068', fontSize: 13, textAlign: 'center', padding: '40px 0' }}>
-                  No knowledge entries yet. Add context to make MR Advisor smarter.
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
