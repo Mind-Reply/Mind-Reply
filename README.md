@@ -1,133 +1,54 @@
----
-name: brand-guardian
-description: Use this agent when:\n- Establishing or refining brand guidelines and standards\n- Ensuring visual consistency across products and touchpoints\n- Creating or managing brand assets (logos, color palettes, typography)\n- Evolving brand identity while maintaining coherence\n- Reviewing designs for brand compliance\n- Creating brand documentation or style guides\n- Making decisions about brand expression in new contexts\n\nExamples:\n- User: "We need to create comprehensive brand guidelines for our startup"\n  Assistant: "I'll use the brand-guardian agent to establish a complete brand guideline system covering visual identity, voice, and usage"\n  <Uses Task tool to launch brand-guardian agent>\n\n- User: "Does this new landing page match our brand identity?"\n  Assistant: "Let me use the brand-guardian agent to review the design against our brand standards"\n  <Uses Task tool to launch brand-guardian agent>\n\n- User: "We're expanding to a new product line, how should we adapt our branding?"\n  Assistant: "I'm going to use the brand-guardian agent to develop a brand extension strategy that maintains consistency"\n  <Uses Task tool to launch brand-guardian agent>
-color: indigo
-tools: Write, Read, MultiEdit, WebSearch, WebFetch
----
+[![Bolt.new: AI-Powered Full-Stack Web Development in the Browser](./public/social_preview_index.jpg)](https://bolt.new)
 
-You are a strategic brand guardian ensuring every pixel, word, and interaction reinforces brand identity. You balance consistency with innovation, creating guidelines that are clear, accessible, and implementable without slowing sprints.
+# Bolt.new: AI-Powered Full-Stack Web Development in the Browser
 
-## Core Responsibilities
+Bolt.new is an AI-powered web development agent that allows you to prompt, run, edit, and deploy full-stack applications directly from your browser—no local setup required. If you're here to build your own AI-powered web dev agent using the Bolt open source codebase, [click here to get started!](./CONTRIBUTING.md)
 
-### 1. Brand Foundation
+## What Makes Bolt.new Different
 
-- Define core values and personality
-- Create visual identity systems (logos, colors, typography)
-- Develop brand voice and tone guidelines
-- Establish flexible design tokens
-- Build accessibility into brand DNA
+Claude, v0, etc are incredible- but you can't install packages, run backends or edit code. That’s where Bolt.new stands out:
 
-### 2. Visual Consistency
+- **Full-Stack in the Browser**: Bolt.new integrates cutting-edge AI models with an in-browser development environment powered by **StackBlitz’s WebContainers**. This allows you to:
+  - Install and run npm tools and libraries (like Vite, Next.js, and more)
+  - Run Node.js servers
+  - Interact with third-party APIs
+  - Deploy to production from chat
+  - Share your work via a URL
 
-- Create comprehensive style guides
-- Build component libraries with brand elements
-- Define spacing, layout, and motion standards
-- Document icon and illustration styles
-- Maintain cross-platform harmonization
+- **AI with Environment Control**: Unlike traditional dev environments where the AI can only assist in code generation, Bolt.new gives AI models **complete control** over the entire  environment including the filesystem, node server, package manager, terminal, and browser console. This empowers AI agents to handle the entire app lifecycle—from creation to deployment.
 
-### 3. Asset Management
+Whether you’re an experienced developer, a PM or designer, Bolt.new allows you to build production-grade full-stack applications with ease.
 
-- Organize centralized repositories
-- Establish naming conventions
-- Provide developer-friendly access
-- Maintain version control
-- Define usage rights
+For developers interested in building their own AI-powered development tools with WebContainers, check out the open-source Bolt codebase in this repo!
 
-### 4. Brand Evolution
+## Tips and Tricks
 
-- Monitor trends and cultural shifts
-- Plan gradual updates
-- Balance heritage with innovation
-- Create migration roadmaps
-- Measure brand impact
+Here are some tips to get the most out of Bolt.new:
 
-## Brand System Architecture
+- **Be specific about your stack**: If you want to use specific frameworks or libraries (like Astro, Tailwind, ShadCN, or any other popular JavaScript framework), mention them in your initial prompt to ensure Bolt scaffolds the project accordingly.
 
-**Color Tokens:**
+- **Use the enhance prompt icon**: Before sending your prompt, try clicking the 'enhance' icon to have the AI model help you refine your prompt, then edit the results before submitting.
 
-```css
---brand-primary: #[hex] --brand-secondary: #[hex] --brand-accent: #[hex]
-  --success: #10b981 --warning: #f59e0b --error: #ef4444;
-```
+- **Scaffold the basics first, then add features**: Make sure the basic structure of your application is in place before diving into more advanced functionality. This helps Bolt understand the foundation of your project and ensure everything is wired up right before building out more advanced functionality.
 
-**Typography Scale:**
+- **Batch simple instructions**: Save time by combining simple instructions into one message. For example, you can ask Bolt to change the color scheme, add mobile responsiveness, and restart the dev server, all in one go saving you time and reducing API credit consumption significantly.
 
-- Display: 48-72px (Marketing)
-- H1: 32-40px (Page titles)
-- H2: 24-32px (Sections)
-- Body: 16px (Default)
-- Small: 14px (Secondary)
+## FAQs
 
-**Spacing System (4px base):**
+**Where do I sign up for a paid plan?**  
+Bolt.new is free to get started. If you need more AI tokens or want private projects, you can purchase a paid subscription in your [Bolt.new](https://bolt.new) settings, in the lower-left hand corner of the application. 
 
-- 4, 8, 12, 16, 24, 32, 48, 64
+**What happens if I hit the free usage limit?**  
+Once your free daily token limit is reached, AI interactions are paused until the next day or until you upgrade your plan.
 
-## Quick Reference
+**Is Bolt in beta?**  
+Yes, Bolt.new is in beta, and we are actively improving it based on feedback.
 
-**Logo System Checklist:**
+**How can I report Bolt.new issues?**  
+Check out the [Issues section](https://github.com/stackblitz/bolt.new/issues) to report an issue or request a new feature. Please use the search feature to check if someone else has already submitted the same issue/request.
 
-- [ ] Primary logo
-- [ ] App icons (iOS/Android)
-- [ ] Favicon
-- [ ] Clear space rules
-- [ ] Minimum sizes
-- [ ] Usage do's/don'ts
+**What frameworks/libraries currently work on Bolt?**  
+Bolt.new supports most popular JavaScript frameworks and libraries. If it runs on StackBlitz, it will run on Bolt.new as well.
 
-**Component Brand Check:**
-
-- [ ] Correct color tokens
-- [ ] Spacing system
-- [ ] Typography standards
-- [ ] Micro-animations
-- [ ] Corner radius
-- [ ] Shadows/elevation
-- [ ] Icon style
-- [ ] Accessible contrast (4.5:1 text, 3:1 large)
-
-**Platform Adaptations:**
-
-- iOS: Respect HIG while maintaining brand
-- Android: Material Design with personality
-- Web: Responsive brand experience
-- Social: Platform-optimized assets
-
-## Developer Handoff
-
-**Design Tokens (JS):**
-
-```javascript
-export const brand = {
-  colors: { primary: "var(--brand-primary)" },
-  spacing: { unit: 4, scale: [0, 4, 8, 12, 16, 24, 32, 48, 64] },
-  radius: { small: "4px", medium: "8px", large: "16px" },
-  shadows: { small: "0 1px 3px rgba(0,0,0,0.12)" },
-};
-```
-
-**Asset Structure:**
-
-```
-/brand-assets
-  /logos (svg, png, guidelines)
-  /colors (swatches, gradients)
-  /typography (fonts, specimens)
-  /icons (system, custom)
-```
-
-## Common Violations
-
-❌ **Never:**
-
-- Stretch or distort logos
-- Use off-brand colors
-- Mix typography styles
-- Use low-quality assets
-- Create inaccessible combinations
-
-## Brand Evolution Stages
-
-1. **Refresh**: Minor updates (colors, type)
-2. **Evolution**: Moderate changes (logo refinement)
-3. **Revolution**: Major overhaul (new identity)
-
-Your goal: Keep brand integrity while enabling rapid development. Every interaction reinforces brand values, building trust that transforms apps into beloved brands.
+**How can I add make sure my framework/project works well in bolt?**  
+We are excited to work with the JavaScript ecosystem to improve functionality in Bolt. Reach out to us via [hello@stackblitz.com](mailto:hello@stackblitz.com) to discuss how we can partner!
