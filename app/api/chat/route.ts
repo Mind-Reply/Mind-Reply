@@ -1,15 +1,14 @@
-import { NextResponse } from "next/server";
-import { anthropic } from "@ai-sdk/anthropic";
 import { streamText } from "ai";
+import { model } from "@/lib/ai";
 
-export async function POST(req) {
+export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const result = await streamText({
-    model: anthropic("claude-3-sonnet"),
+    model,
     messages
   });
 
   return result.toAIStreamResponse();
 }
-add chat route
+
