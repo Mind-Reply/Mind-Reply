@@ -12,4 +12,4 @@ export async function POST(req) {
 
   return result.toAIStreamResponse();
 }
-
+add chat route
