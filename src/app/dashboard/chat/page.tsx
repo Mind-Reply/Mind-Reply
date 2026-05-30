@@ -164,4 +164,104 @@ export default function DashboardChatPage() {
       </div>
     </div>
   );
+}"use client";
+
+import { useState } from "react";
+
+export default function ChatPage() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+
+  async function sendMessage() {
+    if (!input.trim()) return;
+
+    const newMessage = { role: "user", content: input };
+    setMessages((prev) => [...prev, newMessage]);
+    setInput("");
+
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ messages: [...messages, newMessage] })
+    });
+
+    const reader = res.body.getReader();
+    let aiText = "";
+    let done = false;
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      if (value) {
+        aiText += new TextDecoder().decode(value);
+        setMessages((prev) => [
+          ...prev.filter((m) => m.role !== "assistant-temp"),
+          { role: "assistant-temp", content: aiText }
+        ]);
+      }
+    }
+
+    setMessages((prev) => [
+      ...prev.filter((m) => m.role !== "assistant-temp"),
+      { role: "assistant", content: aiText }
+    ]);
+  }
+
+  return (
+    <main style={{ padding: 40, maxWidth: 700, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 32, marginBottom: 20 }}>MindReply Chat</h1>
+
+      <div
+        style={{
+          border: "1px solid #ddd",
+          borderRadius: 12,
+          padding: 20,
+          height: 500,
+          overflowY: "auto",
+          marginBottom: 20
+        }}
+      >
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            style={{
+              marginBottom: 12,
+              padding: 12,
+              borderRadius: 10,
+              background: m.role === "user" ? "#e5f1ff" : "#f4f4f4"
+            }}
+          >
+            <strong>{m.role === "user" ? "You" : "AI"}</strong>
+            <div>{m.content}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 10 }}>
+        <input
+          style={{
+            flex: 1,
+            padding: 12,
+            borderRadius: 8,
+            border: "1px solid #ccc"
+          }}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message…"
+        />
+        <button
+          onClick={sendMessage}
+          style={{
+            padding: "12px 20px",
+            borderRadius: 8,
+            background: "black",
+            color: "white",
+            border: "none"
+          }}
+        >
+          Send
+        </button>
+      </div>
+    </main>
+  );
 }
+
