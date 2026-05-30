@@ -1,8 +1,4 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    serverActions: true
-  }
-};
+next.config.mjs
+package.json
+tsconfig.json
 
-export default nextConfig;
