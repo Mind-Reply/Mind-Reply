@@ -1,0 +1,28 @@
+mindreply/
+│
+├── app/
+│   ├── api/
+│   │   ├── chat/
+│   │   │   └── route.ts
+│   │   ├── session/
+│   │   │   └── route.ts
+│   │   └── health/
+│   │       └── route.ts
+│   │
+│   ├── chat/
+│   │   └── page.tsx
+│   │
+│   ├── layout.tsx
+│   └── page.tsx
+│
+├── lib/
+│   └── ai.ts
+│
+├── public/
+│
+├── styles/
+│   └── globals.css
+│
+├── next.config.mjs
+├── package.json
+└── tsconfig.json
