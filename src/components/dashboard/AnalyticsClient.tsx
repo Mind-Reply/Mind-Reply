@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { User } from '@/lib/db/schema';
 
 type ChartDay = { date: string; chats: number; tasks: number; ops: number };
