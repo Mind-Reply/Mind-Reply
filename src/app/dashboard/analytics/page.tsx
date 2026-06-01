@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { db, users, tasks, messages, logs } from '@/lib/db';
-import { eq, count, gte, and, sql } from 'drizzle-orm';
+import { eq, count, gte, and } from 'drizzle-orm';
 import AnalyticsClient from '@/components/dashboard/AnalyticsClient';
 
 export default async function AnalyticsPage() {
