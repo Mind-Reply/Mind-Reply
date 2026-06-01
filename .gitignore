@@ -1,3 +1,4 @@
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -6,11 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build outputs
 dist
 dist-ssr
 *.local
+build
 
+# IDE & OS
 .vscode/*
 !.vscode/launch.json
 !.vscode/extensions.json
@@ -22,9 +28,11 @@ dist-ssr
 *.sln
 *.sw?
 
-/.cache
-/build
+# Environment & Config
 .env*
 *.vars
+
+# Wrangler (Cloudflare Workers)
 .wrangler
 _worker.bundle
+cache
