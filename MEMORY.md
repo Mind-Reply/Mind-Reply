@@ -1,0 +1,3 @@
+- [MindReply stack](mindreply-stack.md) — Next.js 15 App Router, Clerk auth, Drizzle ORM + Neon PostgreSQL, Stripe, Anthropic, Gmail OAuth. Port 5000.
+- [Hydration fix pattern](hydration-fix.md) — Never use new Date() at render in client components; always compute time-sensitive values in useEffect and use suppressHydrationWarning.
+- [Schema currency field](mindreply-stack.md) — Added `currency` text column (default 'gbp') to users table; migrated via drizzle-kit push.
