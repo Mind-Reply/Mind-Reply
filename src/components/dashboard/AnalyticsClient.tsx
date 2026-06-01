@@ -5,12 +5,6 @@ import type { User } from '@/lib/db/schema';
 
 type ChartDay = { date: string; chats: number; tasks: number; ops: number };
 
-const CHART_STYLE = {
-  background: 'transparent',
-  fontSize: 10,
-  color: '#7a7068',
-};
-
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
