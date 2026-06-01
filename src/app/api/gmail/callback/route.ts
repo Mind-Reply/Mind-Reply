@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOAuthClient } from '@/lib/gmail';
 import { db, gmailTokens } from '@/lib/db';
-import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { google } from 'googleapis';
 
